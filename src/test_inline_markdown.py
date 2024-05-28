@@ -1,6 +1,10 @@
 import unittest
 from inline_markdown import (
     split_nodes_delimiter,
+    extract_markdown_images,
+    extract_markdown_links,
+    split_nodes_link,
+    split_nodes_image
 )
 
 from textnode import (
@@ -9,6 +13,8 @@ from textnode import (
     text_type_bold,
     text_type_italic,
     text_type_code,
+    text_type_image,
+    text_type_link
 )
 
 
@@ -79,6 +85,71 @@ class TestInlineMarkdown(unittest.TestCase):
             new_nodes,
         )
 
+    def test_extract_images(self):
+        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and ![another](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png)"
+        expected = [("image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"), ("another", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/dfsdkjfd.png")]
+        self.assertEqual(
+            extract_markdown_images(text),
+            expected
+        )
+
+    def test_extract_images_once(self):
+        text = "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png)"
+        expected = [("image", "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png")]
+        self.assertEqual(
+            extract_markdown_images(text),
+            expected
+        )
+
+    def test_extract_links(self):
+        text = "This is text with a [link](https://www.example.com) and [another](https://www.example.com/another)"
+        expected = [("link", "https://www.example.com"), ("another", "https://www.example.com/another")]
+        self.assertEqual(
+            extract_markdown_links(text),
+            expected
+        )
+
+    def test_split_nodes_image(self):
+        node = TextNode(
+            "This is text with an ![image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and another ![second image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png)",
+            text_type_text,
+        )       
+        new_nodes = split_nodes_image([node])
+
+        expected = [
+            TextNode("This is text with an ", text_type_text),
+            TextNode("image", text_type_image, "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+            TextNode(" and another ", text_type_text),
+            TextNode(
+                "second image", text_type_image, "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png"
+            ),
+        ]
+
+        self.assertListEqual(
+            expected,
+            new_nodes
+        )
+    
+    def test_split_nodes_link(self):
+        node = TextNode(
+            "This is text with an [image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png) and another [second image](https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png)",
+            text_type_text,
+        )       
+        new_nodes = split_nodes_link([node])
+
+        expected = [
+            TextNode("This is text with an ", text_type_text),
+            TextNode("image", text_type_link, "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/zjjcJKZ.png"),
+            TextNode(" and another ", text_type_text),
+            TextNode(
+                "second image", text_type_link, "https://storage.googleapis.com/qvault-webapp-dynamic-assets/course_assets/3elNhQu.png"
+            ),
+        ]
+
+        self.assertListEqual(
+            expected,
+            new_nodes
+        )
 
 if __name__ == "__main__":
     unittest.main()

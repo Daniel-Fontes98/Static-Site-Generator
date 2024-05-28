@@ -5,9 +5,6 @@ from textnode import (
     text_type_text,
     text_type_bold,
     text_type_italic,
-    text_type_code,
-    text_type_image,
-    text_type_link,
 )
 
 
@@ -39,6 +36,8 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(
             "TextNode(This is a text node, text, https://www.boot.dev)", repr(node)
         )
+    
+    
 
 
 if __name__ == "__main__":
