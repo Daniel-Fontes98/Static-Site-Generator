@@ -24,20 +24,24 @@ class TextNode:
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
     
 
-def text_node_to_html_node(text_node):
-    if text_node.text_type == text_type_text:
-        return LeafNode(None, text_node.text)
-    elif text_node.text_type == text_type_bold:
-        return LeafNode("b", text_node.text)
-    elif text_node.text_type == text_type_italic:
-        return LeafNode("i", text_node.text)
-    elif text_node.text_type == text_type_code:
-        return LeafNode("code", text_node.text)
-    elif text_node.text_type == text_type_link:
-        return LeafNode("a", text_node.text, {"href": text_node.url})
-    elif text_node.text_type == text_type_image:
-        return LeafNode("img", "", {"src": text_node.url, "alt": text_node.text})
-    raise ValueError(f"Invalid text type: {text_node.text_type}")
+def text_nodes_to_html_nodes(text_nodes):
+    html_nodes = []
+    for text_node in text_nodes:
+        if text_node.text_type == text_type_text:
+            html_nodes.append(LeafNode(None, text_node.text))
+        elif text_node.text_type == text_type_bold:
+            html_nodes.append(LeafNode("b", text_node.text))
+        elif text_node.text_type == text_type_italic:
+            html_nodes.append(LeafNode("i", text_node.text))
+        elif text_node.text_type == text_type_code:
+            html_nodes.append(LeafNode("code", text_node.text))
+        elif text_node.text_type == text_type_link:
+            html_nodes.append(LeafNode("a", text_node.text, {"href": text_node.url}))
+        elif text_node.text_type == text_type_image:
+            html_nodes.append(LeafNode("img", "", {"src": text_node.url, "alt": text_node.text}))
+        else:
+            raise ValueError(f"Invalid text type: {text_node.text_type}")
+    return html_nodes
 
 
 
