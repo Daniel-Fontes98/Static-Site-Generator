@@ -9,7 +9,13 @@ from markdown_blocks import (
     block_type_paragraph,
     block_type_quote,
     block_type_unordered_list,
-    heading_to_html_node
+    heading_to_html_node,
+    code_to_html_node,
+    quote_to_html_node,
+    unordered_list_to_html_node,
+    ordered_list_to_html_node,
+    paragraph_to_html_node,
+    markdown_to_html_node
 )
 
 
@@ -151,7 +157,174 @@ This is the same paragraph on a new line
             ParentNode("h6", [LeafNode(None, "I am h6")])
         )
 
+    def test_code_to_html_node(self):
+        block = "```Hello World\nHello Dad!```"
+        self.assertEqual(
+            code_to_html_node(block),
+            ParentNode(
+                "pre",
+                ParentNode(
+                    "code",
+                    [LeafNode(None, "Hello World\nHello Dad!")]
+                )
+            )
+        )
 
+    def test_quote_to_html_nodes(self):
+        block1 = ">This is me\n>And this is me again"
+        self.assertEqual(
+            quote_to_html_node(block1),
+            ParentNode("blockquote", [LeafNode(None, "This is me\nAnd this is me again")])
+        )
+
+        block2 = ">This is me\n>This is me but **bold**"
+        self.assertEqual(
+            quote_to_html_node(block2),
+            ParentNode("blockquote", [LeafNode(None, "This is me\nThis is me but "), LeafNode("b", "bold")])
+        )
+
+    def test_unordered_list_to_html_nodes(self):
+        block = "- This is first\n- This is second\n- **This** is last"
+        self.assertEqual(
+            unordered_list_to_html_node(block),
+            ParentNode(
+                "ul",
+                [
+                    ParentNode(
+                        "li",
+                        [LeafNode(None, "This is first")]  
+                    ),
+                    ParentNode(
+                        "li",
+                        [LeafNode(None, "This is second")]    
+                    ),
+                    ParentNode(
+                        "li",
+                        [LeafNode("b", "This"), LeafNode(None, " is last")]    
+                    ),
+                ]
+            )
+        )
+    
+    def test_ordered_list_to_html_nodes(self):
+        block = "1. This is first\n2. This is second\n3. **This** is last"
+        self.assertEqual(
+            ordered_list_to_html_node(block),
+            ParentNode(
+                "ol",
+                [
+                    ParentNode(
+                        "li",
+                        [LeafNode(None, "This is first")]  
+                    ),
+                    ParentNode(
+                        "li",
+                        [LeafNode(None, "This is second")]    
+                    ),
+                    ParentNode(
+                        "li",
+                        [LeafNode("b", "This"), LeafNode(None, " is last")]    
+                    ),
+                ]
+            )
+        )
+
+    def test_paragraph_to_html_nodes(self):
+        block = "Hello World\nI am *Daniel* and this is **CS50**"
+        self.assertEqual(
+            paragraph_to_html_node(block),
+            ParentNode(
+                "p",
+                [
+                    LeafNode(None, "Hello World I am "),
+                    LeafNode("i", "Daniel"),
+                    LeafNode(None, " and this is "),
+                    LeafNode("b", "CS50"),
+                ]
+            )
+        )
+        
+    def test_markdown_to_html_node(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with *italic* text and `code` here
+This is the same paragraph on a new line
+
+* This is a list
+* with items
+"""
+        self.assertEqual(
+            markdown_to_html_node(md),
+            ParentNode(
+                "div",
+                [
+                    ParentNode(
+                        "p",
+                        [
+                            LeafNode(None, "This is "),
+                            LeafNode("b", "bolded"),
+                            LeafNode(None, " paragraph")
+                        ]
+                    ),
+                    ParentNode(
+                        "p",
+                        [
+                            LeafNode(None, "This is another paragraph with "),
+                            LeafNode("i", "italic"),
+                            LeafNode(None, " text and "),
+                            LeafNode("code", "code"),
+                            LeafNode(None, " here This is the same paragraph on a new line")
+                        ]
+                    ),
+                    ParentNode(
+                        "ul",
+                        [
+                            ParentNode(
+                                "li",
+                                [LeafNode(None, "This is a list")]
+                            ),
+                            ParentNode(
+                                "li",
+                                [LeafNode(None, "with items")]
+                            )
+                        ]
+                    )
+                ]
+            )
+        )
+    
+    def test_headings(self):
+        md = """
+# this is an h1
+
+this is paragraph text
+
+## this is an h2
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><h1>this is an h1</h1><p>this is paragraph text</p><h2>this is an h2</h2></div>",
+        )
+
+    def test_blockquote(self):
+        md = """
+> This is a
+> blockquote block
+
+this is paragraph text
+
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><blockquote> This is a\n blockquote block</blockquote><p>this is paragraph text</p></div>",
+        )
 
 if __name__ == "__main__":
     unittest.main()

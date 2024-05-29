@@ -83,4 +83,65 @@ def heading_to_html_node(block):
     text_nodes = text_to_textnodes(text)
     html_nodes = text_nodes_to_html_nodes(text_nodes)
     return ParentNode(f"h{len(block) - len(text) - 1}", html_nodes)
+
+def code_to_html_node(block):
+    text = block.strip("```")
+    text_nodes = text_to_textnodes(text)
+    html_nodes = text_nodes_to_html_nodes(text_nodes)
+    return ParentNode(
+        "pre",
+        ParentNode(
+            "code",
+            html_nodes
+        )
+    )
+
+def quote_to_html_node(block):
+    text = block.replace(">", "")
+    text_nodes = text_to_textnodes(text)
+    html_nodes = text_nodes_to_html_nodes(text_nodes)
+    return ParentNode("blockquote", html_nodes)
+
+def unordered_list_to_html_node(block):
+    lines = block.split("\n")
+    li_nodes = []
+    for line in lines:
+        text_nodes = text_to_textnodes(line[2:])
+        html_nodes = text_nodes_to_html_nodes(text_nodes)
+        li_nodes.append(ParentNode("li", html_nodes))
+    return ParentNode("ul", li_nodes)
+
+def ordered_list_to_html_node(block):
+    lines = block.split("\n")
+    li_nodes = []
+    for line in lines:
+        text_nodes = text_to_textnodes(line.lstrip("0123456789. "))
+        html_nodes = text_nodes_to_html_nodes(text_nodes)
+        li_nodes.append(ParentNode("li", html_nodes))
+    return ParentNode("ol", li_nodes)
     
+def paragraph_to_html_node(block):
+    lines = block.split("\n")
+    text = " ".join(lines)
+    text_nodes = text_to_textnodes(text)
+    html_nodes = text_nodes_to_html_nodes(text_nodes)
+    return ParentNode("p", html_nodes)
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    html_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        if block_type == block_type_heading:
+            html_nodes.append(heading_to_html_node(block))
+        elif block_type == block_type_code:
+            html_nodes.append(code_to_html_node(block))
+        elif block_type == block_type_quote:
+            html_nodes.append(quote_to_html_node(block))
+        elif block_type == block_type_unordered_list:
+            html_nodes.append(unordered_list_to_html_node(block))
+        elif block_type == block_type_ordered_list:
+            html_nodes.append(ordered_list_to_html_node(block))
+        else:
+            html_nodes.append(paragraph_to_html_node(block))
+    return ParentNode("div", html_nodes)
