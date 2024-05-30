@@ -163,12 +163,13 @@ This is the same paragraph on a new line
             code_to_html_node(block),
             ParentNode(
                 "pre",
-                ParentNode(
+                [ParentNode(
                     "code",
                     [LeafNode(None, "Hello World\nHello Dad!")]
-                )
+                )]
             )
         )
+
 
     def test_quote_to_html_nodes(self):
         block1 = ">This is me\n>And this is me again"

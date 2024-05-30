@@ -1,6 +1,7 @@
 from inline_markdown import text_to_textnodes
 from textnode import text_nodes_to_html_nodes
 from htmlnode import ParentNode
+import os
 
 block_type_paragraph = "paragraph"
 block_type_heading = "heading"
@@ -32,69 +33,43 @@ def block_to_block_type(block):
         return block_type_ordered_list
     return block_type_paragraph
 
-
 def is_block_heading(block):
     lines = block.split("\n")
     if len(lines) == 1:
-        if lines[0].startswith("# "):
+        if lines[0].startswith("#"):
             return True
-        elif lines[0].startswith("## "):
-            return True
-        elif lines[0].startswith("### "):
-            return True
-        elif lines[0].startswith("#### "):
-            return True
-        elif lines[0].startswith("##### "):
-            return True
-        elif lines[0].startswith("###### "):
-            return True
-        else:
-            return False
     return False
 
 def is_block_code(block):
-    if block.startswith("```") and block[-3:] == "```":
-        return True
-    return False
+    return block.startswith("```") and block.endswith("```")
 
 def is_block_quote(block):
     lines = block.split("\n")
-    for line in lines:
-        if not line.startswith(">"):
-            return False
-    return True
+    return all(line.startswith(">") for line in lines)
 
 def is_block_unordered_list(block):
     lines = block.split("\n")
-    for line in lines:
-        if not line.startswith("* ") and not line.startswith("- "):
-            return False
-    return True
+    return all(line.startswith("* ") or line.startswith("- ") for line in lines)
 
 def is_block_ordered_list(block):
     lines = block.split("\n")
-    for i in range(len(lines)):
-        if not lines[i].startswith(f"{i+1}. "):
+    for line in lines:
+        if not line.lstrip().startswith(tuple(f"{i+1}. " for i in range(len(lines)))):
             return False
     return True
 
 def heading_to_html_node(block):
+    heading_level = block.count("#", 0, block.find(" "))
     text = block.lstrip("# ")
     text_nodes = text_to_textnodes(text)
     html_nodes = text_nodes_to_html_nodes(text_nodes)
-    return ParentNode(f"h{len(block) - len(text) - 1}", html_nodes)
+    return ParentNode(f"h{heading_level}", html_nodes)
 
 def code_to_html_node(block):
     text = block.strip("```")
     text_nodes = text_to_textnodes(text)
     html_nodes = text_nodes_to_html_nodes(text_nodes)
-    return ParentNode(
-        "pre",
-        ParentNode(
-            "code",
-            html_nodes
-        )
-    )
+    return ParentNode("pre", [ParentNode("code", html_nodes)])
 
 def quote_to_html_node(block):
     text = block.replace(">", "")
@@ -119,7 +94,7 @@ def ordered_list_to_html_node(block):
         html_nodes = text_nodes_to_html_nodes(text_nodes)
         li_nodes.append(ParentNode("li", html_nodes))
     return ParentNode("ol", li_nodes)
-    
+
 def paragraph_to_html_node(block):
     lines = block.split("\n")
     text = " ".join(lines)
@@ -145,3 +120,5 @@ def markdown_to_html_node(markdown):
         else:
             html_nodes.append(paragraph_to_html_node(block))
     return ParentNode("div", html_nodes)
+
+
